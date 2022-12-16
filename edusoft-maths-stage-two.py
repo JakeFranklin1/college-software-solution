@@ -22,9 +22,8 @@ def levelOne():
                 b = random.randrange(0, 10, 1)
                 print("Generating new numbers:", a, operatorNoDiv, b) # Testing
                 result = operatorDict[operatorNoDiv](a, b)
-                print(result, "testing")
             print(" Question number: %d" % question + "\n", a, operatorNoDiv, b)
-            print("Answer =",result)
+            print("Answer =",result) # testing
             answer = int(input("Please Answer the Question: "))
         else:
             result = operatorDict[operator](a, b)
@@ -34,7 +33,7 @@ def levelOne():
                 print("Generating new numbers:", a, operator, b) # Testing
                 result = operatorDict[operator](a, b)
             print("Question number: %d" % question,"\n", a, operator, b)
-            print("Answer =",result)
+            print("Answer =",result) # Testing
             answer = int(input("Please Answer the Question: "))
         if answer == result:
             print("\nCorrect! The answer was", result,"\n")
