@@ -26,9 +26,10 @@ def main():
             elif level == 3:
                 num1 = -100
                 num2 = 100
-            levelOne(level, studentList, num1,num2)
+            File.close()
+            mathsTest(level,num1,num2)
 
-def levelOne(level, studentList, num1,num2):
+def mathsTest(level,num1,num2):
     print("Level of test:",level)
     question = 0
     correctAnswer = 0
@@ -67,9 +68,10 @@ def levelOne(level, studentList, num1,num2):
             wrongAnswer += 1
     if question == 10:
         print("Your correct answers were:",correctAnswer, "And you got",wrongAnswer,"Incorrect")
-#         return updateScore(correctAnswer, wrongAnswer)
+        return updateScore(correctAnswer, wrongAnswer)
     
-# def updateScore(correctAnswer, wrongAnswer):
+def updateScore(correctAnswer, wrongAnswer):
+    
     
 
 main()
