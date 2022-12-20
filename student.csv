@@ -1,3 +1,4 @@
-JinkleBob,Jinkle,Bob,1,5PE,1
-EmilyBonner,Emily,Bonner,2,5PE,0
-TomBon,Tom,Bon,3,5PE,0
+LoginName,FirstName,LastName,Level,Code,BestResult
+JinkleBob,Jinkle,Bob,1,5PE,10
+EmilyBonner,Emily,Bonner,2,5PE,10
+TomBon,Tom,Bon,3,5PE,10

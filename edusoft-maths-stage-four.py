@@ -3,9 +3,9 @@ import random
 import csv
 from datetime import date, datetime
 operatorDict = {"+":operator.add,
-            "-":operator.sub,
-            "*":operator.mul,
-            "/":operator.floordiv}
+                "-":operator.sub,
+                "*":operator.mul,
+                "/":operator.floordiv}
 
 def main():
     studentList = []
@@ -36,8 +36,6 @@ def main():
         if login == resultData[row][0]:
             studentResults.append(int(resultData[row][1]))
             lastResult = resultData[row][1]
-    # File.close()
-    # resultFile.close()
     print("Your last result was:",lastResult,"\nAnd your best result was:", max(studentResults))
     userChoice = input("\nWould you like to move to the test? (y/n): ").upper()
     if userChoice == "Y": 
@@ -91,6 +89,13 @@ def mathsTest(login,level,num1,num2):
     
 def updateScore(login, wrongAnswer):
     result = 10 - wrongAnswer
+    # studentList = []
+    bestScore = open("student.csv","a")
+    Reader = csv.reader(bestScore)
+    Data = list(Reader)
+    for x in list(range(0, len(Data))):
+        if login == Data[x][0]:
+            print(Data[x][5])
     currentDate = date.today()
     time = datetime.now()
     studentRecords = open('result.csv', 'a')
