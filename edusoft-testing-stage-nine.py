@@ -13,10 +13,11 @@ operatorDict = {"+": operator.add,
 
 def main():
     teacherOrStudent = input("Are you a teacher or a student? ").lower()
-    teacher() if teacherOrStudent == 'teacher' else student()
+    teacherValidate() if teacherOrStudent == 'teacher' else student()
 
 
 def student():
+    
     num1 = 0
     studentPath = '/Users/jake/College/college-software-solution/student.csv'
     resultPath = '/Users/jake/College/college-software-solution/result.csv'
@@ -46,7 +47,6 @@ def student():
         for row in csv_reader:
             if login == row['UserName']:
                 lastResult = row['PreviousResult']
-                print(lastResult, type(lastResult))
     if bestResult == 0:
         print("It's your first time playing! Good luck.")
     else:
@@ -161,7 +161,7 @@ def updateBestResult(login, result):
     print("New Personal best! Congratulations, your file has been updated.")
 
 
-def teacher():
+def teacherValidate():
     teacherPath = "/Users/jake/College/college-software-solution/teacherDetails.csv"
     teacherLogin = input("Please enter your username: ")
     teacherPassword = input("Please enter your password: ")
@@ -174,13 +174,18 @@ def teacher():
                 print("Welcome", name)
             else:
                 print("Incorrect username or password, please try again.")
-                teacher()  # testing, will replace
+                teacherValidate()  # testing, will replace
     teacherData.close()
+    teacher()
+
+
+def teacher():
     print("Teacher Menu \n"
           "1. Add a student\n"
           "2. Delete a student\n"
           "3. Check a student's progress\n"
-          "4. Change a student's course code")
+          "4. Change a student's course code\n"
+          "5. Quit the program")
     teacherMenu = input("Please choose from the menu above. ")
     if teacherMenu == '1':
         teacherAdd()
@@ -190,9 +195,11 @@ def teacher():
         checkProgress()
     elif teacherMenu == '4':
         changeCode()
-    # else:
-    #     print("Error")
-    #     teacher()
+    elif teacherMenu == '5':
+        quit()
+    else:
+        print("Error")
+        teacher()
 
 
 def teacherAdd():
@@ -208,6 +215,7 @@ def teacherAdd():
             "," + Level + "," + Code + "," + BestResult)
     newData.write(line)
     newData.close()
+    teacherReturn()
 
 
 def teacherDel():
@@ -224,15 +232,27 @@ def teacherDel():
         Writer = csv.writer(f)
         Writer.writerows(updatedlist)
         print("File has been updated")
+        f.close()
+        teacherReturn()
 
 
 def checkProgress():
+    storePrevResults = []
+    count = 0
     studentName = input("Enter the name of the student you wish to check: ")
-    with open('/Users/jake/College/college-software-solution/student.csv', 'r') as studentProgress:
+    with open('/Users/jake/College/college-software-solution/result.csv', 'r') as studentProgress:
         csv_reader = csv.DictReader(studentProgress)
         for row in csv_reader:
-            if studentName in row["FirstName"] or studentName in row["LastName"]:
-                print(row)  # testing
+            if studentName in row["UserName"]:
+                count += 1
+                previousResults = row["PreviousResult"]
+                storePrevResults.append(int(previousResults))
+        sumOf = sum(storePrevResults)
+        averageScore = sumOf / count
+        bestResult = max(storePrevResults)
+        print(
+            f"The average score of {studentName} is {averageScore:.2f}, their previous result was {previousResults} and this students best score so far was {bestResult}.")
+        teacherReturn()
 
 
 def changeCode():
@@ -243,6 +263,7 @@ def changeCode():
     updateCode = input("Enter the new course code: ")
     editFiles(first, moveStudent, oldCode, updateCode)
     print("test")
+    teacherReturn()
 
 
 def editFiles(storedUser, login, old, new):
@@ -257,6 +278,17 @@ def editFiles(storedUser, login, old, new):
                             row["LastName"], row["Level"], row["Code"], row["BestResult"]]))
     studentFile.close()
     print("updated")  # testing
+
+
+def teacherReturn():
+    returnToMenu = input(
+        "Would you like to return to the teacher menu? (Y/N): ").upper()
+    if returnToMenu == "Y":
+        teacher()
+    elif returnToMenu == "N":
+        quit()
+    else:
+        print("Input error, try again.")
 
 
 main()
