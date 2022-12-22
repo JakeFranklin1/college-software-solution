@@ -46,20 +46,19 @@ def student():
         csv_reader = csv.DictReader(resultData)
         for row in csv_reader:
             if login == row['UserName']:
-                lastResult = row['PreviousResult']
-    if bestResult == 0:
-        print("It's your first time playing! Good luck.")
-    else:
-        print("Your last result was:", lastResult,
-              "\nAnd your best result was:", bestResult)
-
+                pass
+        if bestResult == 0:
+            print("It's your first time playing! Good luck.")
+        else:
+            print("Your last result was:", row['PreviousResult'],
+                    "\nAnd your best result was:", bestResult)
+                
     userChoice = input("\nWould you like to move to the test? (y/n): ").upper()
-    if userChoice == "Y":
-        mathsTest(login=login, level=level, num1=num1,
-                  num2=num2, bestResult=bestResult)
-    elif userChoice == "N":
+    
+    if userChoice != "Y":
         quit()
-
+    mathsTest(login=login, level=level, num1=num1,
+                num2=num2, bestResult=bestResult)
 
 def mathsTest(**student):
     print("Level of test:", student["level"], "\n")
@@ -70,27 +69,32 @@ def mathsTest(**student):
 
         question += 1
         startTime = time()
-        operator = random.choice(["-", "+", "*", "/"])
+        operator = random.choice(["/","+","-","*"])
+        # operator = random.choice(["/"])
         a = random.randrange(student["num1"], student["num2"], 1)
         b = random.randrange(student["num1"], student["num2"], 1)
-
-        if b == 0 and operator == "/":
-            operatorNoDiv = random.choice(["+", "-", "*"])
-            print("tried to divide by 0: ", a, operator, b)
-            a, operator, b, result = calculate(
-                student, operatorNoDiv, operatorDict, question, a, b)
-        else:
-            a, operator, b, result = calculate(
-                student, operator, operatorDict, question, a, b)
+        # b = random.randrange(0,5, 1)
+        # a = 0
+        # b = 0
+        print("Question number: %d" % question)
+        
+        a, operator, b, result = calculate(
+                student, operator, operatorDict, a, b)
 
         currentQuestion = (str(a) + ' ' + str(operator) + ' ' + str(b))
-        if currentQuestion in prevQuestions:
-            a, b, result = validateQuestion(student, operator)
-        print(a, operator, b)
-        print("Answer =", result)  # testing
+        while currentQuestion in prevQuestions:
+            # print(a, operator, b)
+            a, operator, b, result = validateQuestion(student, operator)
+            currentQuestion = (str(a) + ' ' + str(operator) + ' ' + str(b))
+            
+            
+        print(f"Question = {a} {operator} {b}")
+        print(f"Answer = {result}")  # testing
+        
         try:
             answer = int(input("\nPlease Answer the Question: "))
-        except ValueError:
+        except:
+            answer = None
             print("Incorrect input, please only use numbers")
         elapsedTime = time() - startTime
         if answer == result:
@@ -110,21 +114,47 @@ def mathsTest(**student):
 
 
 def validateQuestion(student, operator):
+    operator = random.choice(["/","+","-","*"])
     a = random.randrange(student["num1"], student["num2"], 1)
     b = random.randrange(student["num1"], student["num2"], 1)
-    result = operatorDict[operator](a, b)
-    print("recalculated", a, operator, b)
-    return a, b, result
+    print("validation", a, operator, b)
+    if b == 0 and operator == '/':
+        operatorNoDiv = random.choice(["+", "-", "*"])
+        a, operatorNoDiv, b, result = calculate(
+        student, operatorNoDiv, operatorDict, a, b)
+        return a, operatorNoDiv, b, result
+    else:
+        a, operator, b, result = calculate(
+                student, operator, operatorDict, a, b)
+        return a, operator, b, result
+    
 
-
-def calculate(student, operator, operatorDict, question, a, b):
-    result = operatorDict[operator](a, b)
-    while student["level"] != 3 and result < 0 or student["level"] != 3 and b > a and operator == "/":
+def calculate(student, operator, operatorDict, a, b):
+    try:
+        result = operatorDict[operator](a, b)
+        # print(a,operator,b)
+        if student["level"] != 3:
+            while result < 0 or b > a and operator == "/":
+                a = random.randrange(student["num1"], student["num2"], 1)
+                b = random.randrange(student["num1"], student["num2"], 1)
+                # print("Generating new numbers:", a, operator, b)  # Testing
+                result = operatorDict[operator](a, b)
+                # print("inside first while: ", a, operator, b, result)
+    except ZeroDivisionError:
+        # print("Zero division inside calculate function ", a, operator, b)
         a = random.randrange(student["num1"], student["num2"], 1)
         b = random.randrange(student["num1"], student["num2"], 1)
-        print("Generating new numbers:", a, operator, b)  # Testing
-        result = operatorDict[operator](a, b)
-    print("Question number: %d" % question)
+        operatorNoDiv = random.choice(["+", "-", "*"])
+        result = operatorDict[operatorNoDiv](a, b)
+        while student["level"] != 3 and result < 0:
+            # print("Validating inside if statement", a, operator,b)
+            operatorNoDiv = random.choice(["+", "*", "-"])
+            a = random.randrange(student["num1"], student["num2"], 1)
+            b = random.randrange(student["num1"], student["num2"], 1)
+            result = operatorDict[operatorNoDiv](a, b)
+            return a, operatorNoDiv, b, result
+        return a, operatorNoDiv, b, result
+    # print("correct print",a,operator,b,result)
     return a, operator, b, result
 
 
@@ -134,10 +164,11 @@ def storeResults(login, wrongAnswer, bestResult):
     time = datetime.now()
     studentRecords = open(
         'result.csv', 'a')
-
+    
     line = ("\n" + login + "," + str(result) + "," +
             currentDate.strftime("%d-%m-%Y") + "," +
             time.strftime("%H:%M:%S"))
+    
     print("Details added to database:",
           login + " " + str(result) + " " +
           currentDate.strftime("%d-%m-%Y") + " " +
@@ -155,27 +186,25 @@ def storeResults(login, wrongAnswer, bestResult):
 
 
 def updateBestResult(login, result):
-    firstRow = "UserName"
-    secondRow = "BestResult"
-    editFiles(firstRow, login, secondRow, result)
+    editFiles("UserName", login, "BestResult", result)
     print("New Personal best! Congratulations, your file has been updated.")
 
 
 def teacherValidate():
-    teacherPath = "teacherDetails.csv"
-    teacherLogin = input("Please enter your username: ")
-    teacherPassword = input("Please enter your password: ")
-    with open(teacherPath, 'r') as teacherData:
-        csv_reader = csv.DictReader(teacherData)
+    path = "teacherDetails.csv"
+    login = input("Please enter your username: ")
+    password = input("Please enter your password: ")
+    with open(path, 'r') as data:
+        csv_reader = csv.DictReader(data)
         for row in csv_reader:
-            if teacherLogin == row["User"] and teacherPassword == row["Password"]:
+            if login == row["User"] and password == row["Password"]:
                 print(row)  # testing
                 name = (''.join([row['First'] + ' ' + row['Last']]))
                 print("Welcome", name)
             else:
                 print("Incorrect username or password, please try again.")
                 teacherValidate()  # testing, will replace
-    teacherData.close()
+    data.close()
     teacher()
 
 
@@ -186,16 +215,16 @@ def teacher():
           "3. Check a student's progress\n"
           "4. Change a student's course code\n"
           "5. Quit the program")
-    teacherMenu = input("Please choose from the menu above. ")
-    if teacherMenu == '1':
+    menu = input("Please choose from the menu above. ")
+    if menu == '1':
         teacherAdd()
-    elif teacherMenu == '2':
+    elif menu == '2':
         teacherDel()
-    elif teacherMenu == '3':
+    elif menu == '3':
         checkProgress()
-    elif teacherMenu == '4':
+    elif menu == '4':
         changeCode()
-    elif teacherMenu == '5':
+    elif menu == '5':
         quit()
     else:
         print("Error")
@@ -247,8 +276,8 @@ def checkProgress():
                 count += 1
                 previousResults = row["PreviousResult"]
                 storePrevResults.append(int(previousResults))
-        sumOf = sum(storePrevResults)
-        averageScore = sumOf / count
+        total = sum(storePrevResults)
+        averageScore = total / count
         bestResult = max(storePrevResults)
         print(
             f"The average score of {studentName} is {averageScore:.2f}, their previous result was {previousResults} and this students best score so far was {bestResult}.")
@@ -256,13 +285,10 @@ def checkProgress():
 
 
 def changeCode():
-    first = "FirstName"
-    oldCode = "Code"
     moveStudent = input(
         "Enter the name of the student you wish to move to a different course: ")
     updateCode = input("Enter the new course code: ")
-    editFiles(first, moveStudent, oldCode, updateCode)
-    print("test")
+    editFiles("FirstName", moveStudent, "Code", updateCode)
     teacherReturn()
 
 
