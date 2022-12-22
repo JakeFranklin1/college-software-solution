@@ -10,9 +10,11 @@ operatorDict = {"+": operator.add,
                 "*": operator.mul,
                 "/": operator.floordiv}
 
+
 def main():
     teacherOrStudent = input("Are you a teacher or a student? ").lower()
     teacher() if teacherOrStudent == 'teacher' else student()
+
 
 def student():
     num1 = 0
@@ -49,7 +51,7 @@ def student():
         print("It's your first time playing! Good luck.")
     else:
         print("Your last result was:", lastResult,
-            "\nAnd your best result was:", bestResult)
+              "\nAnd your best result was:", bestResult)
 
     userChoice = input("\nWould you like to move to the test? (y/n): ").upper()
     if userChoice == "Y":
@@ -85,8 +87,8 @@ def mathsTest(**student):
         if currentQuestion in prevQuestions:
             a, b, result = validateQuestion(student, operator)
         print(a, operator, b)
-        print("Answer =", result) # testing
-        try: 
+        print("Answer =", result)  # testing
+        try:
             answer = int(input("\nPlease Answer the Question: "))
         except ValueError:
             print("Incorrect input, please only use numbers")
@@ -151,25 +153,14 @@ def storeResults(login, wrongAnswer, bestResult):
     else:
         print("\nUnfortunately, you didn't get a new personal best.")
 
+
 def updateBestResult(login, result):
     firstRow = "UserName"
     secondRow = "BestResult"
     editFiles(firstRow, login, secondRow, result)
     print("New Personal best! Congratulations, your file has been updated.")
-    
-    # with fileinput.input(files=('/Users/jake/College/college-software-solution/student.csv'),
-    #                      inplace=True, mode='r') as studentFile:
-    #     reader = csv.DictReader(studentFile)
-    #     print(",".join(reader.fieldnames))  # print back the headers
-    #     for row in reader:
-    #         best = int(row["BestResult"])
-    #         if row["UserName"] == login and result > best:
-    #             row["BestResult"] = str(result)
-    #         print(",".join([row["UserName"], row["FirstName"],
-    #               row["LastName"], row["Level"], row["Code"], row["BestResult"]]))
-    # studentFile.close()
-    # print("\nNew personal best! Your result has been updated.")
-    
+
+
 def teacher():
     teacherPath = "/Users/jake/College/college-software-solution/teacherDetails.csv"
     teacherLogin = input("Please enter your username: ")
@@ -178,12 +169,12 @@ def teacher():
         csv_reader = csv.DictReader(teacherData)
         for row in csv_reader:
             if teacherLogin == row["User"] and teacherPassword == row["Password"]:
-                print(row) # testing
+                print(row)  # testing
                 name = (''.join([row['First'] + ' ' + row['Last']]))
                 print("Welcome", name)
             else:
                 print("Incorrect username or password, please try again.")
-                teacher() # testing, will replace
+                teacher()  # testing, will replace
     teacherData.close()
     print("Teacher Menu \n"
           "1. Add a student\n"
@@ -199,64 +190,73 @@ def teacher():
         checkProgress()
     elif teacherMenu == '4':
         changeCode()
-    # else: 
+    # else:
     #     print("Error")
-    #     teacher()   
+    #     teacher()
+
 
 def teacherAdd():
     newData = open(
-    '/Users/jake/College/college-software-solution/student.csv', 'a')
+        '/Users/jake/College/college-software-solution/student.csv', 'a')
     UserName = input("Enter the students username: ")
     FirstName = input("Enter the students first name: ")
     LastName = input("Enter the students last name: ")
     Level = input("Enter the students level: ")
     Code = input("Enter the students course code: ")
     BestResult = 0
-    line = ("\n" + UserName + "," + FirstName + "," + LastName + "," + Level + "," + Code + "," + BestResult)
+    line = ("\n" + UserName + "," + FirstName + "," + LastName +
+            "," + Level + "," + Code + "," + BestResult)
     newData.write(line)
     newData.close()
-    
+
+
 def teacherDel():
-    updatedlist=[]
-    with open("/Users/jake/College/college-software-solution/student.csv",newline="") as f:
-      reader=csv.reader(f)
-      username=input("Enter the username of the user you wish to remove from file: ")
-      for row in reader:
-        if row[0]!= username: 
-            updatedlist.append(row) 
-      print(updatedlist)
-    with open("/Users/jake/College/college-software-solution/student.csv","w",newline="") as f:
+    updatedlist = []
+    with open("/Users/jake/College/college-software-solution/student.csv", newline="") as f:
+        reader = csv.reader(f)
+        username = input(
+            "Enter the username of the user you wish to remove from file: ")
+        for row in reader:
+            if row[0] != username:
+                updatedlist.append(row)
+        print(updatedlist)
+    with open("/Users/jake/College/college-software-solution/student.csv", "w", newline="") as f:
         Writer = csv.writer(f)
         Writer.writerows(updatedlist)
         print("File has been updated")
-        
+
+
 def checkProgress():
     studentName = input("Enter the name of the student you wish to check: ")
     with open('/Users/jake/College/college-software-solution/student.csv', 'r') as studentProgress:
         csv_reader = csv.DictReader(studentProgress)
         for row in csv_reader:
             if studentName in row["FirstName"] or studentName in row["LastName"]:
-                print(row) # testing
-                
+                print(row)  # testing
+
+
 def changeCode():
     first = "FirstName"
     oldCode = "Code"
-    moveStudent = input("Enter the name of the student you wish to move to a different course: ")
+    moveStudent = input(
+        "Enter the name of the student you wish to move to a different course: ")
     updateCode = input("Enter the new course code: ")
     editFiles(first, moveStudent, oldCode, updateCode)
     print("test")
-    
+
+
 def editFiles(storedUser, login, old, new):
     with fileinput.input(files=('/Users/jake/College/college-software-solution/student.csv'),
-                        inplace=True, mode='r') as studentFile:
-            reader = csv.DictReader(studentFile)
-            print(",".join(reader.fieldnames))  # print back the headers
-            for row in reader:
-                if row[storedUser] == login:
-                    row[old] = str(new)
-                print(",".join([row["UserName"], row["FirstName"],
-                    row["LastName"], row["Level"], row["Code"], row["BestResult"]]))
+                         inplace=True, mode='r') as studentFile:
+        reader = csv.DictReader(studentFile)
+        print(",".join(reader.fieldnames))  # print back the headers
+        for row in reader:
+            if row[storedUser] == login:
+                row[old] = str(new)
+            print(",".join([row["UserName"], row["FirstName"],
+                            row["LastName"], row["Level"], row["Code"], row["BestResult"]]))
     studentFile.close()
-    print("updated") # testing
+    print("updated")  # testing
+
 
 main()
