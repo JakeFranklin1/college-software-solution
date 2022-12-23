@@ -17,7 +17,7 @@ def main():
 
 
 def student():
-    
+
     num1 = 0
     studentPath = 'student.csv'
     resultPath = 'result.csv'
@@ -26,7 +26,7 @@ def student():
         csv_reader = csv.DictReader(studentData)
         for row in csv_reader:
             if login == row["UserName"]:
-                print(row) # testing
+                print(row)  # testing
                 bestResult = int(row["BestResult"])
                 name = (''.join([row['FirstName'] + ' ' + row['LastName']]))
                 print("Welcome", name)
@@ -51,48 +51,46 @@ def student():
             print("It's your first time playing! Good luck.")
         else:
             print("Your last result was:", row['PreviousResult'],
-                    "\nAnd your best result was:", bestResult)
-                
+                  "\nAnd your best result was:", bestResult)
+
     userChoice = input("\nWould you like to move to the test? (y/n): ").upper()
-    
+
     if userChoice != "Y":
         quit()
     mathsTest(login=login, level=level, num1=num1,
-                num2=num2, bestResult=bestResult)
+              num2=num2, bestResult=bestResult)
+
 
 def mathsTest(**student):
+
     print("Level of test:", student["level"], "\n")
     question = 0
     wrongAnswer = 0
+    dupeCount = 0
     prevQuestions = []
     while question != 10:
 
         question += 1
         startTime = time()
-        operator = random.choice(["/","+","-","*"])
-        # operator = random.choice(["/"])
-        a = random.randrange(student["num1"], student["num2"], 1)
-        b = random.randrange(student["num1"], student["num2"], 1)
-        # b = random.randrange(0,5, 1)
-        # a = 0
-        # b = 0
         print("Question number: %d" % question)
-        
+
         a, operator, b, result = calculate(
-                student, operator, operatorDict, a, b)
+            student, operatorDict)
 
         currentQuestion = (str(a) + ' ' + str(operator) + ' ' + str(b))
         while currentQuestion in prevQuestions:
-            # print(a, operator, b)
-            a, operator, b, result = validateQuestion(student, operator)
+            print('dupe detected', a, operator, b)
+            dupeCount += 1
+            a, operator, b, result = calculate(
+                student, operatorDict)
             currentQuestion = (str(a) + ' ' + str(operator) + ' ' + str(b))
-            
-            
+
         print(f"Question = {a} {operator} {b}")
         print(f"Answer = {result}")  # testing
-        
+
         try:
             answer = int(input("\nPlease Answer the Question: "))
+            # answer = result # testing
         except:
             answer = None
             print("Incorrect input, please only use numbers")
@@ -111,50 +109,37 @@ def mathsTest(**student):
         print("Your correct answers were:", (10 - wrongAnswer),
               "and you got", wrongAnswer, "incorrect")
         storeResults(student['login'], wrongAnswer, student['bestResult'])
+    print("dupe questions avoided:", dupeCount)
 
 
-def validateQuestion(student, operator):
-    operator = random.choice(["/","+","-","*"])
-    a = random.randrange(student["num1"], student["num2"], 1)
-    b = random.randrange(student["num1"], student["num2"], 1)
-    print("validation", a, operator, b)
-    if b == 0 and operator == '/':
-        operatorNoDiv = random.choice(["+", "-", "*"])
-        a, operatorNoDiv, b, result = calculate(
-        student, operatorNoDiv, operatorDict, a, b)
-        return a, operatorNoDiv, b, result
-    else:
-        a, operator, b, result = calculate(
-                student, operator, operatorDict, a, b)
-        return a, operator, b, result
-    
-
-def calculate(student, operator, operatorDict, a, b):
+def calculate(student, operatorDict):
     try:
+        operator = random.choice(["/", "+", "-", "*"])
+        a = random.randrange(student["num1"], student["num2"], 1)
+        b = random.randrange(student["num1"], student["num2"], 1)
         result = operatorDict[operator](a, b)
-        # print(a,operator,b)
         if student["level"] != 3:
             while result < 0 or b > a and operator == "/":
+                # print("inside first while: ", a, operator, b, result)
+                operator = random.choice(["/", "+", "-", "*"])
                 a = random.randrange(student["num1"], student["num2"], 1)
                 b = random.randrange(student["num1"], student["num2"], 1)
                 # print("Generating new numbers:", a, operator, b)  # Testing
                 result = operatorDict[operator](a, b)
-                # print("inside first while: ", a, operator, b, result)
     except ZeroDivisionError:
-        # print("Zero division inside calculate function ", a, operator, b)
+        print("Zero division inside calculate function ",
+              a, operator, b)  # testing
         a = random.randrange(student["num1"], student["num2"], 1)
         b = random.randrange(student["num1"], student["num2"], 1)
         operatorNoDiv = random.choice(["+", "-", "*"])
         result = operatorDict[operatorNoDiv](a, b)
         while student["level"] != 3 and result < 0:
-            # print("Validating inside if statement", a, operator,b)
-            operatorNoDiv = random.choice(["+", "*", "-"])
+            # print("Validating inside if statement", a, operator,b) # testing
+            operatorNoDiv = random.choice(["+", "-", "*"])
             a = random.randrange(student["num1"], student["num2"], 1)
             b = random.randrange(student["num1"], student["num2"], 1)
             result = operatorDict[operatorNoDiv](a, b)
-            return a, operatorNoDiv, b, result
         return a, operatorNoDiv, b, result
-    # print("correct print",a,operator,b,result)
     return a, operator, b, result
 
 
@@ -164,11 +149,11 @@ def storeResults(login, wrongAnswer, bestResult):
     time = datetime.now()
     studentRecords = open(
         'result.csv', 'a')
-    
+
     line = ("\n" + login + "," + str(result) + "," +
             currentDate.strftime("%d-%m-%Y") + "," +
             time.strftime("%H:%M:%S"))
-    
+
     print("Details added to database:",
           login + " " + str(result) + " " +
           currentDate.strftime("%d-%m-%Y") + " " +
@@ -301,7 +286,7 @@ def editFiles(storedUser, login, old, new):
             if row[storedUser] == login:
                 row[old] = str(new)
             print(",".join([row["UserName"], row["FirstName"],
-                            row["LastName"], row["Level"], row["Code"], row["BestResult"]]))
+                  row["LastName"], row["Level"], row["Code"], row["BestResult"]]))
     studentFile.close()
     print("updated")  # testing
 
