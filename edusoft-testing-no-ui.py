@@ -68,7 +68,7 @@ def mathsTest(**student):
     wrongAnswer = 0
     dupeCount = 0
     prevQuestions = []
-    while question != 10:
+    while question != 280:
 
         question += 1
         startTime = time()
@@ -89,8 +89,8 @@ def mathsTest(**student):
         print(f"Answer = {result}")  # testing
 
         try:
-            answer = int(input("\nPlease Answer the Question: "))
-            # answer = result # testing
+            # answer = int(input("\nPlease Answer the Question: "))
+            answer = result  # testing
         except:
             answer = None
             print("Incorrect input, please only use numbers")
@@ -120,11 +120,11 @@ def calculate(student, operatorDict):
         result = operatorDict[operator](a, b)
         if student["level"] != 3:
             while result < 0 or b > a and operator == "/":
-                # print("inside first while: ", a, operator, b, result)
+                print("inside first negative check: ", a, operator, b, result)
                 operator = random.choice(["/", "+", "-", "*"])
                 a = random.randrange(student["num1"], student["num2"], 1)
                 b = random.randrange(student["num1"], student["num2"], 1)
-                # print("Generating new numbers:", a, operator, b)  # Testing
+                print("Generating new numbers:", a, operator, b)  # Testing
                 result = operatorDict[operator](a, b)
     except ZeroDivisionError:
         print("Zero division inside calculate function ",
@@ -134,7 +134,7 @@ def calculate(student, operatorDict):
         operatorNoDiv = random.choice(["+", "-", "*"])
         result = operatorDict[operatorNoDiv](a, b)
         while student["level"] != 3 and result < 0:
-            # print("Validating inside if statement", a, operator,b) # testing
+            print("Validating inside if statement", a, operator, b)  # testing
             operatorNoDiv = random.choice(["+", "-", "*"])
             a = random.randrange(student["num1"], student["num2"], 1)
             b = random.randrange(student["num1"], student["num2"], 1)
@@ -241,7 +241,7 @@ def teacherDel():
         for row in reader:
             if row[0] != username:
                 updatedlist.append(row)
-        print(updatedlist)
+        print(updatedlist)  # testing
     with open("student.csv", "w", newline="") as f:
         Writer = csv.writer(f)
         Writer.writerows(updatedlist)
@@ -251,21 +251,28 @@ def teacherDel():
 
 
 def checkProgress():
-    storePrevResults = []
-    count = 0
-    studentName = input("Enter the name of the student you wish to check: ")
-    with open('result.csv', 'r') as studentProgress:
-        csv_reader = csv.DictReader(studentProgress)
-        for row in csv_reader:
-            if studentName in row["UserName"]:
-                count += 1
-                previousResults = row["PreviousResult"]
-                storePrevResults.append(int(previousResults))
-        total = sum(storePrevResults)
-        averageScore = total / count
-        bestResult = max(storePrevResults)
-        print(
-            f"The average score of {studentName} is {averageScore:.2f}, their previous result was {previousResults} and this students best score so far was {bestResult}.")
+    try:
+        storePrevResults = []
+        count = 0
+        studentName = input(
+            "Enter the username of the student you wish to check: ")
+        with open('result.csv', 'r') as studentProgress:
+            csv_reader = csv.DictReader(studentProgress)
+            for row in csv_reader:
+                if studentName == row["UserName"]:
+                    count += 1
+                    previousResults = row["PreviousResult"]
+                    storePrevResults.append(int(previousResults))
+            total = sum(storePrevResults)
+            averageScore = total / count
+            bestResult = max(storePrevResults)
+            print(
+                f"The average score of {studentName} is {averageScore:.2f}, their previous result was {previousResults} and this students best score so far was {bestResult}.")
+            studentProgress.close()
+            teacherReturn()
+    except ZeroDivisionError:
+        print("Error, usually because the user wasn't found or they have no records yet.")
+        studentProgress.close()
         teacherReturn()
 
 
