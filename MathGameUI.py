@@ -15,34 +15,10 @@ operatorDict = {"+": operator.add,
 studentPath = '/Users/jake/College/college-software-solution/student.csv'
 resultPath = '/Users/jake/College/college-software-solution/result.csv'
 question = 0
-
+plays = 0
 num1 = 0
 
 # Designing window for registration
-
-
-def studentLogin():
-    global register_screen
-    global username
-    global password
-    global username_entry
-    global password_entry
-
-    register_screen = Toplevel(main_screen)
-    register_screen.title("Register")
-    register_screen.geometry("300x250")
-    username = StringVar()
-    password = StringVar()
-
-    Label(register_screen, text="Please enter details below").pack()
-    Label(register_screen, text="").pack()
-    username_label = Label(register_screen, text="Username")
-    username_label.pack()
-    username_entry = Entry(register_screen, textvariable=username)
-    username_entry.pack()
-    Label(register_screen, text="").pack()
-    Button(register_screen, text="Login", width=10,
-           height=1, command=mathGameUI).pack()
 
 
 # Designing window for login
@@ -73,25 +49,38 @@ def teacherLogin():
     password_login_entry.pack()
     Label(login_screen, text="").pack()
     Button(login_screen, text="Login", width=10,
-           height=1, command=login_verify).pack()
+           height=1, command=lambda: login_verify(str(username_login_entry.get()), str(password_login_entry.get()))).pack()
 
 
-def login_verify():
-    username1 = "jp66"
-    password1 = "1234"
-    username_login_entry.delete(0, END)
-    password_login_entry.delete(0, END)
-    if username1 == "jp66" and password1 == "1234":
-        login_success()
+def login_verify(login, password):
+    found = False
+    print(login, password)
+    path = "/Users/jake/College/college-software-solution/teacherDetails.csv"
+    with open(path, 'r') as data:
+        csv_reader = csv.DictReader(data)
+        for row in csv_reader:
+            print(row)  # testing
+            if row["User"] == login and row["Password"] == password:
+                found = True
+                break
+        if found == True:
+            name = (''.join([row['First'] + ' ' + row['Last']]))
+            print("Welcome", name)
+            data.close()
+            login_success(name)
+        else:
+            data.close()
+            password_not_recognised()
 
 
-def login_success():
+def login_success(teacherName):
     global login_success_screen
     global tab1, tab2, tab3, tab4, tab5
     login_success_screen = Toplevel(login_screen)
-    login_success_screen.title("Success")
+    login_success_screen.title("Student Management")
     login_success_screen.geometry("680x500")
-    Label(login_success_screen, text="Login Success").pack()
+    title = f"Welcome to the teacher dashboard, {teacherName}."
+    Label(login_success_screen, text=title).pack()
 
     tabControl = ttk.Notebook(login_success_screen)
     tab1 = ttk.Frame(tabControl)
@@ -188,31 +177,40 @@ def showCode(user):
 
 
 def checkProgress(user, code):
-    # try:
-    storePrevResults = []
-    count = 0
-    with open('result.csv', 'r') as studentProgress:
-        csv_reader = csv.DictReader(studentProgress)
-        for row in csv_reader:
-            if user == row["UserName"]:
-                count += 1
-                previousResults = row["PreviousResult"]
-                storePrevResults.append(int(previousResults))
-        total = sum(storePrevResults)
-        averageScore = round(total / count, 2)
-        bestResult = max(storePrevResults)
+    try:
+        storePrevResults = []
+        count = 0
+        with open('result.csv', 'r') as studentProgress:
+            csv_reader = csv.DictReader(studentProgress)
+            for row in csv_reader:
+                if user == row["UserName"]:
+                    count += 1
+                    previousResults = row["PreviousResult"]
+                    storePrevResults.append(int(previousResults))
 
+            total = sum(storePrevResults)
+            averageScore = round(total / count, 2)
+            bestResult = max(storePrevResults)
+
+            userNameLabel.config(text=user)
+            previousResultLabel.config(text=previousResults)
+            bestResultLabel.config(text=bestResult)
+            averageScoreLabel.config(text=averageScore)
+            courseCodeLabel.config(text=code)
+            print(
+                f"The average score of {user} is {averageScore:.2f}, their previous result was {previousResults} and this students best score so far was {bestResult}.")
+            studentProgress.close()
+    except ZeroDivisionError:
+        print("Error, usually because the user wasn't found or they have no records yet.")
+        studentProgress.close()
+        averageScore = 0
+        bestResult = 0
+        previousResults = 0
         userNameLabel.config(text=user)
         previousResultLabel.config(text=previousResults)
         bestResultLabel.config(text=bestResult)
         averageScoreLabel.config(text=averageScore)
         courseCodeLabel.config(text=code)
-        print(
-            f"The average score of {user} is {averageScore:.2f}, their previous result was {previousResults} and this students best score so far was {bestResult}.")
-        studentProgress.close()
-    # except ZeroDivisionError:
-    #     print("Error, usually because the user wasn't found or they have no records yet.")
-    #     studentProgress.close()
 
 
 def delStudentUI():
@@ -349,6 +347,29 @@ def addStudent(user, first, last, level, code):
     newData.close()
 
 
+def studentLogin():
+    global studentLoginScreen
+    global username
+    global password
+    global username_entry
+
+    studentLoginScreen = Toplevel(main_screen)
+    studentLoginScreen.title("Register")
+    studentLoginScreen.geometry("300x250")
+    username = StringVar()
+
+    Label(studentLoginScreen, text="Please enter details below").pack()
+    Label(studentLoginScreen, text="").pack()
+    username_label = Label(studentLoginScreen, text="Username")
+    username_label.pack()
+    username_entry = Entry(studentLoginScreen, textvariable=username)
+    username_entry.pack()
+    Label(studentLoginScreen, text="").pack()
+    Button(studentLoginScreen, text="Login", width=10,
+           height=1, command=mathGameUI).pack()
+    studentLoginScreen.bind('<Return>', (lambda event: mathGameUI()))
+
+
 def mathGameUI():
     global firstNumber
     global secondNumber
@@ -356,91 +377,105 @@ def mathGameUI():
     global num2
     global level
     global gameFrame
+    global gameUI
     global prevQuestions
     global login
     global wrongAnswer
-    global gameUI
     global question
+    global timeList
+
     question = 0
     wrongAnswer = 0
     prevQuestions = []
+    timeList = []
+    try:
+        login = username.get()
+        with open(studentPath, 'r') as studentData:
+            csv_reader = csv.DictReader(studentData)
+            for row in csv_reader:
+                if login == row["UserName"]:
+                    # print(row)  # testing
+                    bestResult = int(row["BestResult"])
+                    name = (
+                        ''.join([row['FirstName'] + ' ' + row['LastName']]))
+                    # print("Welcome", name)
 
-    login = username.get()
-    with open(studentPath, 'r') as studentData:
-        csv_reader = csv.DictReader(studentData)
-        for row in csv_reader:
-            if login == row["UserName"]:
-                print(row)  # testing
-                bestResult = int(row["BestResult"])
-                name = (''.join([row['FirstName'] + ' ' + row['LastName']]))
-                print("Welcome", name)
+                    if int(row["Level"]) == 1:
+                        level = 1
+                        num2 = 10
+                    elif int(row["Level"]) == 2:
+                        level = 2
+                        num2 = 100
+                    elif int(row["Level"]) == 3:
+                        level = 3
+                        num1 = -100
+                        num2 = 100
 
-                if int(row["Level"]) == 1:
-                    level = 1
-                    num2 = 10
-                elif int(row["Level"]) == 2:
-                    level = 2
-                    num2 = 100
-                elif int(row["Level"]) == 3:
-                    level = 3
-                    num1 = -100
-                    num2 = 100
-    studentData.close()
-    with open(resultPath, 'r') as resultData:
-        csv_reader = csv.DictReader(resultData)
-        for row in csv_reader:
-            if login == row['UserName']:
-                previousResult = row['PreviousResult']
-        if bestResult == 0:
-            response = str(
-                f"Welcome, {name}! It's your first time playing, good luck!")
-        else:
-            response = str(
-                f"Welcome, {name}! Your last result was: {previousResult} and your best result was: {bestResult}.")
+        studentData.close()
+        with open(resultPath, 'r') as resultData:
+            csv_reader = csv.DictReader(resultData)
+            for row in csv_reader:
+                if login == row['UserName']:
+                    previousResult = row['PreviousResult']
+            if bestResult == 0:
+                response = str(
+                    f"Welcome, {name}! It's your first time playing, good luck!")
+            else:
+                response = str(
+                    f"Welcome, {name}! Your last result was: {previousResult} and your best result was: {bestResult}.")
+        if plays == 0:
+            messagebox.showinfo("User Information", response)
 
-    messagebox.showinfo("User Information", response)
+        gameUI = Toplevel(main_screen)
+        title = f"Level {level} Maths Game"
+        gameUI.title(title)
+        gameUI.geometry("635x395")
+        gameFrame = Frame(gameUI, width=400, height=250)
+        gameFrame.pack(fill="both", expand=1)
+        global gameLabel
+        gameLabel = Label(gameFrame, text="", font=("Helvetica", 18))
+        gameLabel.pack(pady=15)
+        mathFrame = Frame(gameFrame)
+        mathFrame.pack()
 
-    gameUI = Toplevel(main_screen)
-    gameUI.title("Math Game")
-    gameUI.geometry("700x700")
-    gameFrame = Frame(gameUI, width=500, height=500)
-    gameFrame.pack(fill="both", expand=1)
-    global gameLabel
-    gameLabel = Label(gameFrame, text="", font=("Helvetica", 18))
-    gameLabel.pack(pady=15)
-    mathFrame = Frame(gameFrame, width=400, height=300)
-    mathFrame.pack()
+        firstNumber = Label(mathFrame, font=("Helvetica", 40))
+        secondNumber = Label(mathFrame, font=("Helvetica", 40))
+        mathSign = Label(mathFrame, text="", font=("Helvetica", 40))
 
-    firstNumber = Label(mathFrame, font=("Helvetica", 28))
-    secondNumber = Label(mathFrame, font=("Helvetica", 28))
-    mathSign = Label(mathFrame, text="+", font=("Helvetica", 28))
+        firstNumber.grid(row=0, column=0)
+        mathSign.grid(row=0, column=1)
+        secondNumber.grid(row=0, column=2)
 
-    # Grid our labels
-    firstNumber.grid(row=0, column=0)
-    mathSign.grid(row=0, column=1)
-    secondNumber.grid(row=0, column=2)
-    # Create answer box and button
-    global add_answer
-    add_answer = Entry(gameFrame, font=("Helvetica", 18))
-    add_answer.pack(pady=30)
+        global add_answer
+        add_answer = Entry(gameFrame, font=("Helvetica", 18))
+        add_answer.pack(pady=30)
 
-    global add_answer_button
-    add_answer_button = Button(
-        gameFrame, text="Answer", command=lambda: getAnswer(result, bestResult))
-    add_answer_button.pack()
+        global add_answer_button
+        add_answer_button = Button(
+            gameFrame, text="Answer", command=lambda: getAnswer(result, bestResult))
+        add_answer_button.pack()
 
-    global answer_message
-    answer_message = Label(gameFrame, text="", font=("Helvetica", 18))
-    answer_message.pack(pady=10)
+        global answer_message
+        answer_message = Label(gameFrame, text="", font=("Helvetica", 18))
+        answer_message.pack(pady=10)
 
-    global resultPlaceholder
-    resultPlaceholder = Label(gameFrame, text="", font=("Helvetica", 18))
-    resultPlaceholder.pack(pady=10)
-    global resultLabel
-    resultLabel = Label(gameFrame, text="", font=("Helvetica", 18))
-    resultLabel.pack(padx=10)
+        global resultPlaceholder
+        resultPlaceholder = Label(gameFrame, text="", font=("Helvetica", 18))
+        resultPlaceholder.pack(pady=10)
+        global resultLabel
+        resultLabel = Label(gameFrame, text="", font=("Helvetica", 18))
+        resultLabel.pack(padx=10)
 
-    mathsTest(bestResult)
+        global progressBar
+        progressBar = ttk.Progressbar(
+            gameFrame, orient=HORIZONTAL, length=100, mode='determinate')
+        progressBar.pack(padx=20)
+
+        add_answer.bind(
+            '<Return>', (lambda event: getAnswer(result, bestResult)))
+        mathsTest(bestResult)
+    except:
+        studentNotFound()
 
 
 def mathsTest(bestResult):
@@ -449,6 +484,7 @@ def mathsTest(bestResult):
     global startTime
     startTime = time()
     question += 1
+    progressBar['value'] += 10
     if question != 11:
         questionCount = str("Question number: %d" % question)
         gameLabel.config(text=questionCount)
@@ -482,14 +518,13 @@ def calculate(operatorDict):
         a = random.randrange(num1, num2, 1)
         b = random.randrange(num1, num2, 1)
         result = operatorDict[operator](a, b)
-        if level != 3:
-            while result < 0 or b > a and operator == "/":
-                print("inside first negative check: ", a, operator, b, result)
-                operator = random.choice(["/", "+", "-", "*"])
-                a = random.randrange(num1, num2, 1)
-                b = random.randrange(num1, num2, 1)
-                print("Generating new numbers:", a, operator, b)  # Testing
-                result = operatorDict[operator](a, b)
+        while result < 0 and level != 3 or b > a and operator == "/":
+            print("inside first negative check: ", a, operator, b, result)
+            operator = random.choice(["/", "+", "-", "*"])
+            a = random.randrange(num1, num2, 1)
+            b = random.randrange(num1, num2, 1)
+            print("Generating new numbers:", a, operator, b)  # Testing
+            result = operatorDict[operator](a, b)
     except ZeroDivisionError:
         print("Zero division inside calculate function ",
               a, operator, b)  # testing
@@ -508,28 +543,37 @@ def calculate(operatorDict):
 
 
 def getAnswer(result, bestResult):
-    global wrongAnswer
-    answer = int(add_answer.get())
-    elapsedTime = time() - startTime
-    if answer == result:
-        response = f"Correct! the answer was {result} and it took you {elapsedTime:.2f} seconds"
-    elif answer != result:
-        wrongAnswer += 1
-        response = f"Wrong! the answer was {result} and it took you {elapsedTime:.2f} seconds"
-    answer_message.config(text=response)
-    add_answer.delete(0, END)
-    mathsTest(bestResult)
+    try:
+        global wrongAnswer
+        global totalTime
+        answer = int(add_answer.get())
+        elapsedTime = time() - startTime
+        timeList.append(float(elapsedTime))
+        totalTime = sum(timeList)
+        print(f"Total time: {totalTime:.2f} seconds")
+        if answer == result:
+            response = f"Correct! the answer was {result} and it took you {elapsedTime:.2f} seconds"
+        elif answer != result:
+            wrongAnswer += 1
+            response = f"Wrong! the answer was {result} and it took you {elapsedTime:.2f} seconds"
+        answer_message.config(text=response)
+        add_answer.delete(0, END)
+        mathsTest(bestResult)
+    except ValueError:
+        messagebox.showinfo("Incorrect Input", "Please only enter numbers.")
 
 
 def gameOver():
-    print("Game Over")
+    global plays
+    plays += 1
     add_answer_button["state"] = "disabled"
     add_answer["state"] = "disabled"
     firstNumber["text"] = "Game"
     mathSign["text"] = ""
     secondNumber["text"] = "Over!"
+    progressBar.pack_forget()
     correct = 10 - wrongAnswer
-    response = f"You have completed the game with {correct} correct answers and {wrongAnswer} wrong answers"
+    response = f"You have completed the game with {correct} correct answers and {wrongAnswer} wrong answers, \nand overall it took you {totalTime:.2f} seconds to complete"
     answer_message.config(text=response)
     playAgain = Button(gameFrame, text="Play Again?", command=restart)
     playAgain.pack()
@@ -579,10 +623,13 @@ def updateBestResult(login, result):
 
 def password_not_recognised():
     global password_not_recog_screen
+    username_login_entry.delete(0, END)
+    password_login_entry.delete(0, END)
     password_not_recog_screen = Toplevel(login_screen)
-    password_not_recog_screen.title("Success")
-    password_not_recog_screen.geometry("150x100")
-    Label(password_not_recog_screen, text="Invalid Password ").pack()
+    password_not_recog_screen.title("Error")
+    password_not_recog_screen.geometry("200x100")
+    Label(password_not_recog_screen,
+          text="Invalid username or Password").pack(pady=20)
     Button(password_not_recog_screen, text="OK",
            command=delete_password_not_recognised).pack()
 
@@ -602,14 +649,14 @@ def editFiles(storedUser, login, old, new, label):
     label.config(text=new)
 
 
-def user_not_found():
-    global user_not_found_screen
-    user_not_found_screen = Toplevel(login_screen)
-    user_not_found_screen.title("Success")
-    user_not_found_screen.geometry("150x100")
-    Label(user_not_found_screen, text="User Not Found").pack()
-    Button(user_not_found_screen, text="OK",
-           command=delete_user_not_found_screen).pack()
+def studentNotFound():
+    global studentNotFound_screen
+    studentNotFound_screen = Toplevel(studentLoginScreen)
+    studentNotFound_screen.title("Error")
+    studentNotFound_screen.geometry("150x100")
+    Label(studentNotFound_screen, text="User Not Found").pack(pady=20)
+    Button(studentNotFound_screen, text="OK",
+           command=delete_studentNotFound_screen).pack()
 
 
 def delete_login_success():
@@ -620,8 +667,8 @@ def delete_password_not_recognised():
     password_not_recog_screen.destroy()
 
 
-def delete_user_not_found_screen():
-    user_not_found_screen.destroy()
+def delete_studentNotFound_screen():
+    studentNotFound_screen.destroy()
 
 
 def main():
