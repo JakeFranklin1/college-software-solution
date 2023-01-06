@@ -15,7 +15,6 @@ operatorDict = {"+": operator.add,
 studentPath = '/Users/jake/College/college-software-solution/student.csv'
 resultPath = '/Users/jake/College/college-software-solution/result.csv'
 question = 0
-plays = 0
 num1 = 0
 prevUser = []
 
@@ -95,8 +94,7 @@ def login_success(teacherName):
 
     lbl1 = ttk.Label(tab1,
                      text="Welcome to the teacher dashboard\nHere you will have the option to add, remove or manage students, alongside access to student records showcasing their progress and course code. \nPlease be careful with managing students and check with the IT team if any issues arise.")
-    lbl1.config(justify='center')
-    lbl1.pack()
+    lbl1.grid(row=0, column=0, sticky="NWSE")
 
 
 def tabChangedHandler(event):
@@ -558,8 +556,6 @@ def getAnswer(result, bestResult):
 
 
 def gameOver():
-    global plays
-    plays += 1
     prevUser.append(studentUserName)
     print(prevUser)
     add_answer_button["state"] = "disabled"
