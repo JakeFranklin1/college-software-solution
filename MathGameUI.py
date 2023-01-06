@@ -1,12 +1,12 @@
+from time import time
+from datetime import date, datetime
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 import random
-import csv
 import fileinput
-from datetime import date, datetime
-from time import time
 import operator
+import csv
 
 operatorDict = {"+": operator.add,
                 "-": operator.sub,
@@ -17,11 +17,8 @@ resultPath = '/Users/jake/College/college-software-solution/result.csv'
 question = 0
 plays = 0
 num1 = 0
+prevUser = []
 
-# Designing window for registration
-
-
-# Designing window for login
 
 def teacherLogin():
     global login_screen
@@ -78,7 +75,7 @@ def login_success(teacherName):
     global tab1, tab2, tab3, tab4, tab5
     login_success_screen = Toplevel(login_screen)
     login_success_screen.title("Student Management")
-    login_success_screen.geometry("680x500")
+    login_success_screen.geometry("578x355")
     title = f"Welcome to the teacher dashboard, {teacherName}."
     Label(login_success_screen, text=title).pack()
 
@@ -96,16 +93,10 @@ def login_success(teacherName):
     tabControl.pack(expand=1, fill="both")
     tabControl.bind('<<NotebookTabChanged>>', tabChangedHandler)
 
-    ttk.Label(tab1,
-              text="Welcome to the main teacher Menu").grid(column=0, row=0, padx=30, pady=30)
-    ttk.Label(tab2,
-              text="").grid(column=0, row=0, padx=30, pady=30)
-    ttk.Label(tab3,
-              text="").grid(column=0, row=0, padx=30, pady=30)
-    ttk.Label(tab4,
-              text="").grid(column=0, row=0, padx=30, pady=30)
-    ttk.Label(tab5,
-              text="").grid(column=0, row=0, padx=30, pady=30)
+    lbl1 = ttk.Label(tab1,
+                     text="Welcome to the teacher dashboard\nHere you will have the option to add, remove or manage students, alongside access to student records showcasing their progress and course code. \nPlease be careful with managing students and check with the IT team if any issues arise.")
+    lbl1.config(justify='center')
+    lbl1.pack()
 
 
 def tabChangedHandler(event):
@@ -119,6 +110,10 @@ def tabChangedHandler(event):
         delStudentUI()
     elif tab == 'Check Student':
         checkStudentUI()
+
+
+def teacherDashboard():
+    pass
 
 
 def checkStudentUI():
@@ -218,18 +213,34 @@ def delStudentUI():
     global list_of_entries
     list_of_entries = []
     var = StringVar(value=list_of_entries)
+
     listbox1 = Listbox(tab3, listvariable=var)
     listbox1.grid(row=0, column=0)
     fNameEntry = Entry(tab3)
-    fNameEntry.grid(row=2, column=0, sticky="NWSE")
+    fNameEntry.grid(row=1, column=0, sticky="NWSE")
     lNameEntry = Entry(tab3)
-    lNameEntry.grid(row=3, column=0, sticky="NWSE")
+    lNameEntry.grid(row=2, column=0, sticky="NWSE")
+
+    Label(tab3, text="Here you can search\nfor a student and\ndelete them if necessary.").grid(
+        row=0, column=1, sticky="N")
+    Label(tab3, text="Use the Entry\nboxes to search\n for a students\n last or first name.").grid(
+        row=0, column=2, sticky="N")
+
+    Label(tab3, text="First Name").grid(
+        row=1, column=2, sticky="NWSE", padx=1, pady=1)
+    Label(tab3, text="Last Name").grid(
+        row=2, column=2, sticky="NWSE", padx=1)
+    Label(tab3, text="Level").grid(
+        row=3, column=2, sticky="NWSE", padx=1)
+    Label(tab3, text="Code").grid(
+        row=4, column=2, sticky="NWSE", padx=1)
+
     Button(tab3, text="Search for Student",
-           command=lambda: studentSearch(str(fNameEntry.get()), lNameEntry.get())).grid(row=4, column=0, sticky="NWSE")
+           command=lambda: studentSearch(str(fNameEntry.get()), lNameEntry.get())).grid(row=3, column=0, sticky="NWSE", rowspan=2)
     Button(tab3, text="Grab Student Details",
-           command=studentDetails).grid(row=5, column=0, sticky="NWSE")
+           command=studentDetails).grid(row=1, column=1, rowspan=2, sticky="NWSE")
     Button(tab3, text="Delete Student",
-           command=deleteStudent).grid(row=4, column=1, rowspan=2, sticky="NWSE")
+           command=deleteStudent).grid(row=3, column=1, rowspan=2, sticky="NWSE")
 
 
 def studentSearch(first, last):
@@ -246,31 +257,15 @@ def studentSearch(first, last):
 
 
 def studentDetails():
-    Label(tab3, text="Username").grid(
-        row=6, column=0, sticky="NWSE", padx=1)
-    Label(tab3, text="First Name").grid(
-        row=7, column=0, sticky="NWSE", padx=1)
-    Label(tab3, text="Last Name").grid(
-        row=8, column=0, sticky="NWSE", padx=1)
-    Label(tab3, text="Level").grid(
-        row=9, column=0, sticky="NWSE", padx=1)
-    Label(tab3, text="Code").grid(
-        row=10, column=0, sticky="NWSE", padx=1)
-    Label(tab3, text="Best Result").grid(
-        row=11, column=0, sticky="NWSE", padx=1)
 
-    userNameLabel2 = Label(tab3)
-    userNameLabel2.grid(row=6, column=1, sticky="NWSE", padx=1)
     firstNameLabel2 = Label(tab3)
-    firstNameLabel2.grid(row=7, column=1, sticky="NWSE", padx=1)
+    firstNameLabel2.grid(row=1, column=3, sticky="NWSE", padx=1)
     lastNameLabel2 = Label(tab3)
-    lastNameLabel2.grid(row=8, column=1, sticky="NWSE", padx=1)
+    lastNameLabel2.grid(row=2, column=3, sticky="NWSE", padx=1)
     levelLabel2 = Label(tab3)
-    levelLabel2.grid(row=9, column=1, sticky="NWSE", padx=1)
+    levelLabel2.grid(row=3, column=3, sticky="NWSE", padx=1)
     codeLabel2 = Label(tab3)
-    codeLabel2.grid(row=10, column=1, sticky="NWSE", padx=1)
-    bestResultLabel2 = Label(tab3)
-    bestResultLabel2.grid(row=11, column=1, sticky="NWSE", padx=1)
+    codeLabel2.grid(row=4, column=3, sticky="NWSE", padx=1)
 
     search = listbox1.get(listbox1.curselection()[0])
     with open(studentPath) as f:
@@ -280,12 +275,10 @@ def studentDetails():
             if any(row):
                 if search in row[0]:
                     # Populate empty labels with results from file
-                    userNameLabel2.config(text=row[0])
                     firstNameLabel2.config(text=row[1])
                     lastNameLabel2.config(text=row[2])
                     levelLabel2.config(text=row[3])
                     codeLabel2.config(text=row[4])
-                    bestResultLabel2.config(text=row[5])
 
 
 def deleteStudent():
@@ -371,29 +364,25 @@ def studentLogin():
 
 
 def mathGameUI():
-    global firstNumber
-    global secondNumber
-    global mathSign
     global num2
     global level
-    global gameFrame
-    global gameUI
-    global prevQuestions
-    global login
-    global wrongAnswer
-    global question
-    global timeList
 
+    global question
     question = 0
+    global wrongAnswer
     wrongAnswer = 0
+    global prevQuestions
     prevQuestions = []
+    global timeList
     timeList = []
+
     try:
-        login = username.get()
+        global studentUserName
+        studentUserName = username.get()
         with open(studentPath, 'r') as studentData:
             csv_reader = csv.DictReader(studentData)
             for row in csv_reader:
-                if login == row["UserName"]:
+                if studentUserName == row["UserName"]:
                     # print(row)  # testing
                     bestResult = int(row["BestResult"])
                     name = (
@@ -415,7 +404,7 @@ def mathGameUI():
         with open(resultPath, 'r') as resultData:
             csv_reader = csv.DictReader(resultData)
             for row in csv_reader:
-                if login == row['UserName']:
+                if studentUserName == row['UserName']:
                     previousResult = row['PreviousResult']
             if bestResult == 0:
                 response = str(
@@ -423,13 +412,16 @@ def mathGameUI():
             else:
                 response = str(
                     f"Welcome, {name}! Your last result was: {previousResult} and your best result was: {bestResult}.")
-        if plays == 0:
+        if studentUserName not in prevUser:
             messagebox.showinfo("User Information", response)
 
+        global gameUI
         gameUI = Toplevel(main_screen)
         title = f"Level {level} Maths Game"
         gameUI.title(title)
         gameUI.geometry("635x395")
+
+        global gameFrame
         gameFrame = Frame(gameUI, width=400, height=250)
         gameFrame.pack(fill="both", expand=1)
         global gameLabel
@@ -438,11 +430,13 @@ def mathGameUI():
         mathFrame = Frame(gameFrame)
         mathFrame.pack()
 
+        global firstNumber
         firstNumber = Label(mathFrame, font=("Helvetica", 40))
-        secondNumber = Label(mathFrame, font=("Helvetica", 40))
-        mathSign = Label(mathFrame, text="", font=("Helvetica", 40))
-
         firstNumber.grid(row=0, column=0)
+        global secondNumber
+        secondNumber = Label(mathFrame, font=("Helvetica", 40))
+        global mathSign
+        mathSign = Label(mathFrame, text="", font=("Helvetica", 40))
         mathSign.grid(row=0, column=1)
         secondNumber.grid(row=0, column=2)
 
@@ -509,7 +503,7 @@ def mathsTest(bestResult):
 
     if question == 11:
         gameOver()
-        storeResults(login, wrongAnswer, bestResult)
+        storeResults(studentUserName, wrongAnswer, bestResult)
 
 
 def calculate(operatorDict):
@@ -566,6 +560,8 @@ def getAnswer(result, bestResult):
 def gameOver():
     global plays
     plays += 1
+    prevUser.append(studentUserName)
+    print(prevUser)
     add_answer_button["state"] = "disabled"
     add_answer["state"] = "disabled"
     firstNumber["text"] = "Game"
