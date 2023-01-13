@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../file-testing/testingcsvc"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "college-software-solution"
+	}
+}

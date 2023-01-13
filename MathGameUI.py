@@ -3,17 +3,25 @@ from datetime import date, datetime
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+from threading import *
 import random
 import fileinput
 import operator
 import csv
+import os
 
 operatorDict = {"+": operator.add,
                 "-": operator.sub,
                 "*": operator.mul,
                 "/": operator.floordiv}
+
+chimeFile = "/Users/jake/College/college-software-solution/correct.mp3"
+buzzFile = "/Users/jake/College/college-software-solution/wrong2.mp3"
+pbFile = "/Users/jake/College/College-software-solution/celebrate.mp3"
+
 studentPath = '/Users/jake/College/college-software-solution/student.csv'
 resultPath = '/Users/jake/College/college-software-solution/result.csv'
+
 question = 0
 num1 = 0
 prevUser = []
@@ -22,9 +30,8 @@ prevUser = []
 def teacherLogin():
     global login_screen
     global username_verify
-    global password_verify
-    global username_login_entry
-    global password_login_entry
+    global teacherUserEntry
+    global teacherPasswordEntry
 
     login_screen = Toplevel(main_screen)
     login_screen.title("Login")
@@ -36,21 +43,27 @@ def teacherLogin():
     password_verify = StringVar()
 
     Label(login_screen, text="Username").pack()
-    username_login_entry = Entry(login_screen, textvariable=username_verify)
-    username_login_entry.pack()
-    Label(login_screen, text="").pack()
+    teacherUserEntry = Entry(
+        login_screen, textvariable=username_verify)
+    teacherUserEntry.pack()
+
     Label(login_screen, text="Password").pack()
-    password_login_entry = Entry(
+    teacherPasswordEntry = Entry(
         login_screen, textvariable=password_verify, show='*')
-    password_login_entry.pack()
-    Label(login_screen, text="").pack()
+    teacherPasswordEntry.pack()
+
     Button(login_screen, text="Login", width=10,
-           height=1, command=lambda: login_verify(str(username_login_entry.get()), str(password_login_entry.get()))).pack()
+           height=1, command=lambda:
+               teacherVerify(str(teacherUserEntry.get()), str(teacherPasswordEntry.get()))).pack()
+    login_screen.bind('<Return>', (lambda event:
+                                   teacherVerify(str(teacherUserEntry.get()), str(teacherPasswordEntry.get()))))
 
 
-def login_verify(login, password):
+def teacherVerify(login, password):
+    teacherUserEntry.delete(0, END)
+    teacherPasswordEntry.delete(0, END)
     found = False
-    print(login, password)
+    print(login, password)  # testing
     path = "/Users/jake/College/college-software-solution/teacherDetails.csv"
     with open(path, 'r') as data:
         csv_reader = csv.DictReader(data)
@@ -61,7 +74,7 @@ def login_verify(login, password):
                 break
         if found == True:
             name = (''.join([row['First'] + ' ' + row['Last']]))
-            print("Welcome", name)
+            print("Welcome", name)  # testing
             data.close()
             login_success(name)
         else:
@@ -72,11 +85,16 @@ def login_verify(login, password):
 def login_success(teacherName):
     global login_success_screen
     global tab1, tab2, tab3, tab4, tab5
+
     login_success_screen = Toplevel(login_screen)
     login_success_screen.title("Student Management")
-    login_success_screen.geometry("578x355")
+    login_success_screen.geometry("595x355")
+    login_success_screen.resizable(0, 0)
     title = f"Welcome to the teacher dashboard, {teacherName}."
     Label(login_success_screen, text=title).pack()
+    login_screen.withdraw()
+    main_screen.withdraw()
+    login_success_screen.protocol("WM_DELETE_WINDOW", returnToTeacherLogin)
 
     tabControl = ttk.Notebook(login_success_screen)
     tab1 = ttk.Frame(tabControl)
@@ -85,22 +103,26 @@ def login_success(teacherName):
     tab4 = ttk.Frame(tabControl)
     tab5 = ttk.Frame(tabControl)
 
-    tabControl.add(tab1, text='Teacher DashBoard')
+    tabControl.add(tab1, text='Teacher Information')
+    ttk.Label(tab1, text="Welcome to the teacher dashboard").pack()
+    ttk.Label(
+        tab1, text="Here you will have the option to add, remove or manage students").pack()
+    ttk.Label(
+        tab1, text="Alongside access to student records showcasing their progress and course code.").pack()
+    ttk.Label(tab1, text="Contact the IT team if any issues arise, or if you are unsure on using the program").pack()
+    Button(tab1, text="Change Teacher", command=returnToTeacherLogin).pack()
+
     tabControl.add(tab2, text='Add Student')
     tabControl.add(tab3, text='Remove Student')
     tabControl.add(tab4, text='Check Student')
     tabControl.pack(expand=1, fill="both")
     tabControl.bind('<<NotebookTabChanged>>', tabChangedHandler)
 
-    lbl1 = ttk.Label(tab1,
-                     text="Welcome to the teacher dashboard\nHere you will have the option to add, remove or manage students, alongside access to student records showcasing their progress and course code. \nPlease be careful with managing students and check with the IT team if any issues arise.")
-    lbl1.grid(row=0, column=0, sticky="NWSE")
-
 
 def tabChangedHandler(event):
     tab = event.widget.tab('current')['text']
-    if tab == 'Teacher DashBoard':
-        print("Testing")
+    if tab == 'Teacher Information':
+        pass
     elif tab == 'Add Student':
         print("activating function")
         addStudentUI()
@@ -108,10 +130,15 @@ def tabChangedHandler(event):
         delStudentUI()
     elif tab == 'Check Student':
         checkStudentUI()
+    else:
+        messagebox.showerror("Error: Unknown tab",
+                             "Sorry, but you have somehow navigated to an unknown tab.")
 
 
-def teacherDashboard():
-    pass
+def returnToTeacherLogin():
+    main_screen.deiconify()
+    login_screen.deiconify()
+    login_success_screen.destroy()
 
 
 def checkStudentUI():
@@ -153,7 +180,9 @@ def checkStudentUI():
     Button(tab4, text="Check Progress",
            command=lambda: showCode(userNameEntry.get())).grid(row=7, column=0, sticky="NWSE")
     Button(tab4, text="Change Code",
-           command=lambda: editFiles("UserName", userNameEntry.get(), "Code", codeEntry.get(), courseCodeLabel)).grid(row=7, column=1, sticky="NWSE")
+           command=lambda: editFiles("UserName", str(userNameEntry.get()), "Code", codeEntry.get(), courseCodeLabel)).grid(row=7, column=1, sticky="NWSE")
+    userNameEntry.bind('<Return>', lambda event: showCode(
+        str(userNameEntry.get())))
 
 
 def showCode(user):
@@ -219,10 +248,8 @@ def delStudentUI():
     lNameEntry = Entry(tab3)
     lNameEntry.grid(row=2, column=0, sticky="NWSE")
 
-    Label(tab3, text="Here you can search\nfor a student and\ndelete them if necessary.").grid(
+    Label(tab3, text="Here you can search\nfor a student and\ndelete them if necessary.\nUse the Entry boxes to search\nfor a students FIRST or LAST name.").grid(
         row=0, column=1, sticky="N")
-    Label(tab3, text="Use the Entry\nboxes to search\n for a students\n last or first name.").grid(
-        row=0, column=2, sticky="N")
 
     Label(tab3, text="First Name").grid(
         row=1, column=2, sticky="NWSE", padx=1, pady=1)
@@ -239,6 +266,12 @@ def delStudentUI():
            command=studentDetails).grid(row=1, column=1, rowspan=2, sticky="NWSE")
     Button(tab3, text="Delete Student",
            command=deleteStudent).grid(row=3, column=1, rowspan=2, sticky="NWSE")
+    listbox1.bind('<Return>', (lambda event: studentDetails()))
+    listbox1.bind('<BackSpace>', (lambda event: deleteStudent()))
+    fNameEntry.bind('<Return>', (lambda event: studentSearch(
+        str(fNameEntry.get()), lNameEntry.get())))
+    lNameEntry.bind('<Return>', (lambda event: studentSearch(
+        str(fNameEntry.get()), lNameEntry.get())))
 
 
 def studentSearch(first, last):
@@ -298,37 +331,48 @@ def deleteStudent():
 
 
 def addStudentUI():
-    Label(tab2, text="Username").grid(
-        row=1, column=0, sticky="NWSE", padx=1)
+    labelToBind = Label(tab2, text="Username")
+    labelToBind.grid(
+        row=0, column=0, sticky="NWSE")
     Label(tab2, text="First Name").grid(
-        row=2, column=0, sticky="NWSE", padx=1)
+        row=1, column=0, sticky="NWSE")
     Label(tab2, text="Last Name").grid(
-        row=3, column=0, sticky="NWSE", padx=1)
+        row=2, column=0, sticky="NWSE")
     Label(tab2, text="Level").grid(
-        row=4, column=0, sticky="NWSE", padx=1)
+        row=3, column=0, sticky="NWSE")
     Label(tab2, text="Code").grid(
-        row=5, column=0, sticky="NWSE", padx=1)
+        row=4, column=0, sticky="NWSE")
+
+    Label(tab2, text="Please use this program to add new\nstudents to your class. All you\nneed to do is input the new students\ndata into the boxes and then click submit.").grid(
+        row=0, column=2, sticky="N", rowspan=5)
 
     userNameEntry = Entry(tab2)
-    userNameEntry.grid(row=1, column=1, sticky="NWSE", padx=1)
+    userNameEntry.grid(row=0, column=1, sticky="NWSE")
     fNameEntry = Entry(tab2)
-    fNameEntry.grid(row=2, column=1, sticky="NWSE", padx=1)
+    fNameEntry.grid(row=1, column=1, sticky="NWSE")
     lNameEntry = Entry(tab2)
-    lNameEntry.grid(row=3, column=1, sticky="NWSE", padx=1)
+    lNameEntry.grid(row=2, column=1, sticky="NWSE")
     levelEntry = Entry(tab2)
-    levelEntry.grid(row=4, column=1, sticky="NWSE", padx=1)
+    levelEntry.grid(row=3, column=1, sticky="NWSE")
     codeEntry = Entry(tab2)
-    codeEntry.grid(row=5, column=1, sticky="NWSE", padx=1)
+    codeEntry.grid(row=4, column=1, sticky="NWSE")
 
-    Button(tab2, text="Add a student",
-           command=lambda: addStudent(
-               str(userNameEntry.get()), str(fNameEntry.get()),
-               str(lNameEntry.get()), str(levelEntry.get()),
-               str(codeEntry.get()))).grid(row=0, column=0,
-                                           sticky="NWSE")
+    addStudentButton = Button(tab2, text="Add a student",
+                              command=lambda: addStudent(str(userNameEntry.get()),
+                                                         str(fNameEntry.get()),
+                                                         str(lNameEntry.get()),
+                                                         str(levelEntry.get()),
+                                                         str(codeEntry.get())))
+    addStudentButton.grid(row=6, column=0, columnspan=2, sticky="NWSE")
+    codeEntry.bind('<Return>', (lambda event: addStudent(str(userNameEntry.get()),
+                                                         str(fNameEntry.get()),
+                                                         str(lNameEntry.get()),
+                                                         str(levelEntry.get()),
+                                                         str(codeEntry.get()))))
 
 
 def addStudent(user, first, last, level, code):
+    addStudentUI()
     newData = open(
         '/Users/jake/College/college-software-solution/student.csv', 'a')
     BestResult = "0"
@@ -340,28 +384,30 @@ def addStudent(user, first, last, level, code):
 
 def studentLogin():
     global studentLoginScreen
-    global username
-    global password
     global username_entry
 
     studentLoginScreen = Toplevel(main_screen)
     studentLoginScreen.title("Register")
-    studentLoginScreen.geometry("300x250")
-    username = StringVar()
+    studentLoginScreen.geometry("300x175")
 
-    Label(studentLoginScreen, text="Please enter details below").pack()
-    Label(studentLoginScreen, text="").pack()
-    username_label = Label(studentLoginScreen, text="Username")
-    username_label.pack()
-    username_entry = Entry(studentLoginScreen, textvariable=username)
+    Label(studentLoginScreen, text="Please enter details below",
+          font=("Helvetica", 20)).pack()
+    Label(studentLoginScreen, text="Username",
+          font=("Helvetica", 18)).pack(pady=10)
+
+    global username_entry
+    username_entry = Entry(studentLoginScreen)
     username_entry.pack()
+
     Label(studentLoginScreen, text="").pack()
-    Button(studentLoginScreen, text="Login", width=10,
-           height=1, command=mathGameUI).pack()
+    Button(studentLoginScreen, text="Go!", width=10,
+           height=2, command=mathGameUI).pack()
+
     studentLoginScreen.bind('<Return>', (lambda event: mathGameUI()))
 
 
 def mathGameUI():
+    global num1
     global num2
     global level
 
@@ -374,24 +420,30 @@ def mathGameUI():
     global timeList
     timeList = []
 
+    # This verifies the student login and if the user doesn't except, it triggers an exception
+    # Which will then open the userNotFound Function
+
     try:
         global studentUserName
-        studentUserName = username.get()
+        studentUserName = username_entry.get()
+        # Opens file
         with open(studentPath, 'r') as studentData:
             csv_reader = csv.DictReader(studentData)
             for row in csv_reader:
                 if studentUserName == row["UserName"]:
-                    # print(row)  # testing
                     bestResult = int(row["BestResult"])
                     name = (
                         ''.join([row['FirstName'] + ' ' + row['LastName']]))
-                    # print("Welcome", name)
+
+                    # If statement to set up the game according to the students' levels\
 
                     if int(row["Level"]) == 1:
                         level = 1
+                        num1 = 0
                         num2 = 10
                     elif int(row["Level"]) == 2:
                         level = 2
+                        num1 = 0
                         num2 = 100
                     elif int(row["Level"]) == 3:
                         level = 3
@@ -399,12 +451,16 @@ def mathGameUI():
                         num2 = 100
 
         studentData.close()
+        # Gets the students best time and Previous results
         with open(resultPath, 'r') as resultData:
             csv_reader = csv.DictReader(resultData)
             for row in csv_reader:
                 if studentUserName == row['UserName']:
+                    global bestTime
+                    bestTime = row['TimeToComplete']
                     previousResult = row['PreviousResult']
             if bestResult == 0:
+                bestTime = 0
                 response = str(
                     f"Welcome, {name}! It's your first time playing, good luck!")
             else:
@@ -415,9 +471,13 @@ def mathGameUI():
 
         global gameUI
         gameUI = Toplevel(main_screen)
+        studentLoginScreen.withdraw()
+        main_screen.withdraw()
         title = f"Level {level} Maths Game"
         gameUI.title(title)
-        gameUI.geometry("635x395")
+        gameUI.geometry("635x400")
+        gameUI.resizable(0, 0)
+        gameUI.protocol("WM_DELETE_WINDOW", userChange)
 
         global gameFrame
         gameFrame = Frame(gameUI, width=400, height=250)
@@ -425,6 +485,12 @@ def mathGameUI():
         global gameLabel
         gameLabel = Label(gameFrame, text="", font=("Helvetica", 18))
         gameLabel.pack(pady=15)
+
+        global progressBar
+        progressBar = ttk.Progressbar(
+            gameFrame, orient=HORIZONTAL, length=100, mode='determinate')
+        progressBar.pack()
+
         mathFrame = Frame(gameFrame)
         mathFrame.pack()
 
@@ -451,17 +517,16 @@ def mathGameUI():
         answer_message = Label(gameFrame, text="", font=("Helvetica", 18))
         answer_message.pack(pady=10)
 
+        global emojiHolder
+        emojiHolder = Label(gameFrame)
+        emojiHolder.pack()
+
         global resultPlaceholder
         resultPlaceholder = Label(gameFrame, text="", font=("Helvetica", 18))
-        resultPlaceholder.pack(pady=10)
+        resultPlaceholder.pack()
         global resultLabel
         resultLabel = Label(gameFrame, text="", font=("Helvetica", 18))
-        resultLabel.pack(padx=10)
-
-        global progressBar
-        progressBar = ttk.Progressbar(
-            gameFrame, orient=HORIZONTAL, length=100, mode='determinate')
-        progressBar.pack(padx=20)
+        resultLabel.pack()
 
         add_answer.bind(
             '<Return>', (lambda event: getAnswer(result, bestResult)))
@@ -471,6 +536,7 @@ def mathGameUI():
 
 
 def mathsTest(bestResult):
+    print(num1, num2)
     global question
     global result
     global startTime
@@ -538,16 +604,24 @@ def getAnswer(result, bestResult):
     try:
         global wrongAnswer
         global totalTime
+        happyFace = u"\U0001F929"
+        sadFace = u"\U0001F62D"
         answer = int(add_answer.get())
         elapsedTime = time() - startTime
         timeList.append(float(elapsedTime))
         totalTime = sum(timeList)
         print(f"Total time: {totalTime:.2f} seconds")
+
         if answer == result:
+            threading(playSound)
+            emojiHolder.config(text=happyFace, font=("Helvetica", 60))
             response = f"Correct! the answer was {result} and it took you {elapsedTime:.2f} seconds"
         elif answer != result:
+            threading(incorrectAnswer)
             wrongAnswer += 1
+            emojiHolder.config(text=sadFace, font=("Helvetica", 60))
             response = f"Wrong! the answer was {result} and it took you {elapsedTime:.2f} seconds"
+
         answer_message.config(text=response)
         add_answer.delete(0, END)
         mathsTest(bestResult)
@@ -555,9 +629,25 @@ def getAnswer(result, bestResult):
         messagebox.showinfo("Incorrect Input", "Please only enter numbers.")
 
 
+def threading(outputFile):
+    t1 = Thread(target=outputFile)
+    t1.start()
+
+
+def playSound():
+    os.system("afplay " + chimeFile)
+
+
+def incorrectAnswer():
+    os.system("afplay " + buzzFile)
+
+
+def newPB():
+    os.system("afplay " + pbFile)
+
+
 def gameOver():
     prevUser.append(studentUserName)
-    print(prevUser)
     add_answer_button["state"] = "disabled"
     add_answer["state"] = "disabled"
     firstNumber["text"] = "Game"
@@ -567,8 +657,20 @@ def gameOver():
     correct = 10 - wrongAnswer
     response = f"You have completed the game with {correct} correct answers and {wrongAnswer} wrong answers, \nand overall it took you {totalTime:.2f} seconds to complete"
     answer_message.config(text=response)
+    emojiHolder.pack_forget()
     playAgain = Button(gameFrame, text="Play Again?", command=restart)
-    playAgain.pack()
+    playAgain.pack(side=LEFT, expand=1, fill=X)
+    ChangeUser = Button(gameFrame, text="Change User", command=userChange)
+    ChangeUser.pack(side=RIGHT, expand=1, fill=X)
+    quitProgram = Button(gameFrame, text="Quit", command=quit)
+    quitProgram.pack(side=TOP, expand=1, fill=X)
+
+
+def userChange():
+    main_screen.deiconify()
+    studentLoginScreen.deiconify()
+    gameUI.destroy()
+    username_entry.delete(0, END)
 
 
 def restart():
@@ -577,53 +679,69 @@ def restart():
 
 
 def storeResults(login, wrongAnswer, bestResult):
+    global bestTime
     testResult = 10 - wrongAnswer
     currentDate = date.today()
     time = datetime.now()
     studentRecords = open(
         'result.csv', 'a')
 
+    storeTotalTime = round(totalTime, 2)
+
     line = ("\n" + login + "," + str(testResult) + "," +
             currentDate.strftime("%d-%m-%Y") + "," +
-            time.strftime("%H:%M:%S"))
+            time.strftime("%H:%M:%S") + "," + str(storeTotalTime))
 
     print("Details added to database:",
           login + " " + str(testResult) + " " +
           currentDate.strftime("%d-%m-%Y") + " " +
-          time.strftime("%H:%M:%S"))
+          time.strftime("%H:%M:%S") + "," + str(storeTotalTime))
 
     studentRecords.write(line)
     studentRecords.close()
 
-    if testResult > bestResult:
-        updateBestResult(login, testResult)
-    elif testResult == int(bestResult):
-        resultPlaceholder.config(text="Tied personal best!")
-        print("Tied personal best!")
+    if float(storeTotalTime) < float(bestTime):
+        newPb = float(bestTime) - float(storeTotalTime)
+        response1 = f"Well done! You were {newPb:.2f} seconds faster this time!"
+    elif bestTime == 0:
+        response1 = "This was your first time playing, play again to see if you can do it faster!"
     else:
+        response1 = "Unfortunately, you weren't faster this time!"
+
+    if testResult > bestResult:
+        response2 = "\nCongratulations, You got a new Personal best. keep it up!"
+        response = str(response1) + str(response2)
+        updateBestResult(login, testResult, response)
+    elif testResult == int(bestResult):
+        response2 = "\nAwesome! Tied personal best!"
+        response = str(response1) + str(response2)
+        resultPlaceholder.config(text=response)
+    else:
+        response2 = "\nUnfortunately, you didn't get a new personal best, but keep trying!"
+        response = str(response1) + str(response2)
         resultPlaceholder.config(
-            text="Unfortunately, you didn't get a new personal best.")
-        print("\nUnfortunately, you didn't get a new personal best.")
+            text=response)
 
 
-def updateBestResult(login, result):
+def updateBestResult(login, result, response):
+    threading(newPB)
     editFiles("UserName", login, "BestResult", result, resultLabel)
     resultPlaceholder.config(
-        text="New Personal best! Congratulations, your file has been updated.")
+        text=response)
     resultLabel.config(text="")
 
 
 def password_not_recognised():
-    global password_not_recog_screen
-    username_login_entry.delete(0, END)
-    password_login_entry.delete(0, END)
-    password_not_recog_screen = Toplevel(login_screen)
-    password_not_recog_screen.title("Error")
-    password_not_recog_screen.geometry("200x100")
-    Label(password_not_recog_screen,
+    global teacherNotFoundScreen
+    teacherUserEntry.delete(0, END)
+    teacherPasswordEntry.delete(0, END)
+    teacherNotFoundScreen = Toplevel(login_screen)
+    teacherNotFoundScreen.title("Error")
+    teacherNotFoundScreen.geometry("200x100")
+    Label(teacherNotFoundScreen,
           text="Invalid username or Password").pack(pady=20)
-    Button(password_not_recog_screen, text="OK",
-           command=delete_password_not_recognised).pack()
+    Button(teacherNotFoundScreen, text="OK",
+           command=teacherNotFound).pack()
 
 
 def editFiles(storedUser, login, old, new, label):
@@ -642,25 +760,24 @@ def editFiles(storedUser, login, old, new, label):
 
 
 def studentNotFound():
-    global studentNotFound_screen
-    studentNotFound_screen = Toplevel(studentLoginScreen)
-    studentNotFound_screen.title("Error")
-    studentNotFound_screen.geometry("150x100")
-    Label(studentNotFound_screen, text="User Not Found").pack(pady=20)
-    Button(studentNotFound_screen, text="OK",
-           command=delete_studentNotFound_screen).pack()
+    global studentNotFoundScreen
+    studentNotFoundScreen = Toplevel(studentLoginScreen)
+    studentNotFoundScreen.title("Error")
+    studentNotFoundScreen.geometry("150x100")
+    Label(studentNotFoundScreen, text="User Not Found").pack(pady=20)
+    Button(studentNotFoundScreen, text="OK",
+           command=deleteStudentNotFound).pack()
+    studentNotFoundScreen.bind(
+        '<Return>', (lambda event: deleteStudentNotFound()))
 
 
-def delete_login_success():
-    login_screen.destroy()
+def teacherNotFound():
+    teacherNotFoundScreen.destroy()
 
 
-def delete_password_not_recognised():
-    password_not_recog_screen.destroy()
-
-
-def delete_studentNotFound_screen():
-    studentNotFound_screen.destroy()
+def deleteStudentNotFound():
+    username_entry.delete(0, END)
+    studentNotFoundScreen.destroy()
 
 
 def main():
@@ -669,7 +786,7 @@ def main():
     main_screen.geometry("300x250")
     main_screen.title("Account Login")
     Label(text="Please log in.", width="300",
-          height="2", font=("Calibri", 13)).pack()
+          height="2", font=("Calibri", 18)).pack()
     Label(text="").pack()
     Button(text="Teacher", height="2", width="30", command=teacherLogin).pack()
     Label(text="").pack()
