@@ -68,7 +68,7 @@ def mathsTest(**student):
     wrongAnswer = 0
     dupeCount = 0
     prevQuestions = []
-    while question != 280:
+    while question != 200:
 
         question += 1
         startTime = time()
@@ -118,6 +118,7 @@ def calculate(student, operatorDict):
         a = random.randrange(student["num1"], student["num2"], 1)
         b = random.randrange(student["num1"], student["num2"], 1)
         result = operatorDict[operator](a, b)
+        
         if student["level"] != 3:
             while result < 0 or b > a and operator == "/":
                 print("inside first negative check: ", a, operator, b, result)
@@ -126,6 +127,7 @@ def calculate(student, operatorDict):
                 b = random.randrange(student["num1"], student["num2"], 1)
                 print("Generating new numbers:", a, operator, b)  # Testing
                 result = operatorDict[operator](a, b)
+                
     except ZeroDivisionError:
         print("Zero division inside calculate function ",
               a, operator, b)  # testing
@@ -133,12 +135,14 @@ def calculate(student, operatorDict):
         b = random.randrange(student["num1"], student["num2"], 1)
         operatorNoDiv = random.choice(["+", "-", "*"])
         result = operatorDict[operatorNoDiv](a, b)
+        
         while student["level"] != 3 and result < 0:
             print("Validating inside if statement", a, operator, b)  # testing
             operatorNoDiv = random.choice(["+", "-", "*"])
             a = random.randrange(student["num1"], student["num2"], 1)
             b = random.randrange(student["num1"], student["num2"], 1)
             result = operatorDict[operatorNoDiv](a, b)
+            
         return a, operatorNoDiv, b, result
     return a, operator, b, result
 
